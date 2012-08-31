@@ -46,7 +46,7 @@ module Cucumber
       OPTIONS_WITH_ARGS = ['-r', '--require', '--i18n', '-f', '--format', '-o', '--out',
                                   '-t', '--tags', '-n', '--name', '-e', '--exclude',
                                   PROFILE_SHORT_FLAG, PROFILE_LONG_FLAG,
-                                  '-a', '--autoformat', '-l', '--lines', '--port']
+                                  '-a', '--autoformat', '-l', '-I', '--input', '--lines', '--port']
 
       def self.parse(args, out_stream, error_stream, options = {})
         new(out_stream, error_stream, options).parse!(args)
@@ -225,6 +225,11 @@ module Cucumber
             Cucumber::Term::ANSIColor.coloring = false
             @options[:dry_run] = true
             @quiet = true
+          end
+          opts.on("-I INPUT_FILE", "--input INPUT_FILE", 
+            "Specify an input file instead of .features files to read the features/scenarios from.",
+            "Only Excel sheet (with .xlsx extention) is accepted currently.") do |v|
+              @options[:input] = v
           end
 
           opts.on("-m", "--no-multiline",

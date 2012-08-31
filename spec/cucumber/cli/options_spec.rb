@@ -111,6 +111,12 @@ module Cli
           after_parsing('-n foo --name bar') { options[:name_regexps].should == [/foo/,/bar/] }
         end
       end
+      
+      context '-I INPUT_FILE or --input INPUT_FILE' do
+        it "stores the provided file path to args" do
+          after_parsing('-I ../test/filename.exlx') { options[:input].should == '../test/filename.exlx' }
+        end
+      end
 
       context '-e PATTERN or --exclude PATTERN' do
         it "stores the provided exclusions as regular expressions" do
