@@ -42,7 +42,7 @@ module Cucumber
       
       unless @configuration.input.nil?
         # generate feature files
-        gen = FeatureFileGenerator.new
+        gen = FeatureFileGenerator.new(@configuration.input, features_paths)
         gen.run!
       end
       
