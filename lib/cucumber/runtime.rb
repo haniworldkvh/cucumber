@@ -39,7 +39,13 @@ module Cucumber
     def run!
       load_step_definitions
       fire_after_configuration_hook
-
+      
+      unless @configuration.input.nil?
+        # generate feature files
+        gen = FeatureFileGenerator.new
+        gen.run!
+      end
+      
       tree_walker = @configuration.build_tree_walker(self)
       self.visitor = tree_walker # Ugly circular dependency, but needed to support World#puts
       

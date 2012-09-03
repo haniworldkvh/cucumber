@@ -31,6 +31,10 @@ module Cucumber
 
         set_environment_variables
       end
+      
+      def input
+        @options[:input] ? @options[:input] : nil
+      end
 
       def verbose?
         @options[:verbose]
