@@ -17,6 +17,7 @@ Gem::Specification.new do |s|
   s.add_runtime_dependency 'builder', '>= 2.1.2'
   s.add_runtime_dependency 'diff-lcs', '>= 1.1.3'
   s.add_runtime_dependency 'json', '>= 1.4.6'
+  s.add_runtime_dependency 'roo'
   
   s.add_development_dependency 'aruba', '~> 0.4.11'
   s.add_development_dependency 'rake', '>= 0.9.2'
