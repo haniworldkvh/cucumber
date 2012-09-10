@@ -8,7 +8,7 @@ Feature: #{name}
   end
 
   def create_scenario(name = generate_scenario_name)
-    <<-GHERKIN
+<<-GHERKIN
   Scenario: #{name}
   #{yield}
     GHERKIN
