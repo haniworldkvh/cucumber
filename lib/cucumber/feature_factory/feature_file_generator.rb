@@ -14,28 +14,29 @@ end
 
 module Cucumber
   module FeatureFactory
-    
-    col = {
-      :priority =>  'A',  #"Priority", 
-      :feature =>   'B',  #"Feature", 
-      :scenario =>  'C',  #"Test Scenario", 
-      :when =>      'D',  #"Command", 
-      :then =>      'E',  #"Expected", 
-      :result =>    'F',  #"Result", 
-      :given =>     'G',  #"Notes (Pre steps)", 
-      :number =>    'H'   #"Number"
-    }
-
-    COMMENT_SYMBOL= "#"
-
     class FeatureFileGenerator
+      
+      COL = {
+        :priority =>  'A',  #"Priority", 
+        :feature =>   'B',  #"Feature", 
+        :scenario =>  'C',  #"Test Scenario", 
+        :when =>      'D',  #"Command", 
+        :then =>      'E',  #"Expected", 
+        :given =>     'F',  #"Notes (Pre steps)", 
+        :result =>    'G',  #"Result", 
+        :number =>    'H'   #"Number"
+      }
+
+      COMMENT_SYMBOL= "#"
+      
   
       attr_accessor :file_path
       attr_accessor :features_dir
+      attr_accessor :sheet_index
   
       def initialize(file_path, features_dir, sheet_index = nil)
         @file_path, @features_dir, @sheet_index = file_path, features_dir, sheet_index
-        @sheet_index = sheet_index
+        @sheet_index = sheet_index.to_i
       end
   
       def run!
@@ -52,49 +53,58 @@ module Cucumber
       # Return an array of features
       def parse_excel
         features = []
-    
-        @book.default_sheet = @sheet_index  unless sheet_index.nil?
+        
         @book = Excelx.new(@file_path)
-    
+        @book.default_sheet = @sheet_index  unless @sheet_index.nil?
+        
         feature = nil
         scenario = nil
-        (@book.first_row..@book.last_row).each do |row|
-          unless @book.cell(row, col[:priority]).include?(COMMENT_SYMBOL)
-            feature_cell = @book.cell(row, col[:feature])
-            unless feature_cell.empty?
-              features << feature unless feature.nil?
-              title = feature_cell.split('\n')
-              description = feature_cell.split('\n')
+        ((@book.first_row + 1)..@book.last_row).each do |row|
+          puts "\n[INFO] Processing row: #{row}"
+          priority_cell = @book.cell(row, COL[:priority]).to_s
+          unless priority_cell.nil? || priority_cell.include?(COMMENT_SYMBOL)
+            feature_cell = @book.cell(row, COL[:feature])
+            unless feature_cell.nil? || feature_cell.empty?
+              features << feature unless feature.nil?  # Add the feature when new feature cell is encountered
+              title = feature_cell.split(/\n/).first
+              description = feature_cell.split(/\n/).last
               feature =  Feature.new(title, description)
             end
         
-            scenario_cell = @book.cell(row, col[:scenario])
+            scenario_cell = @book.cell(row, COL[:scenario]).to_s
             unless scenario_cell.empty?
-              priority = @book.cell(row, col[:priority])
-              when_clause = @book.cell(row, col[:when])
+              priority = @book.cell(row, COL[:priority]).to_s
+              when_clause = @book.cell(row, COL[:when]).to_s
               scenario = feature.create_scenario(scenario_cell, when_clause, priority.empty? ? nil : priority)
           
-              given_clauses = @book.cell(row, col[:given])
-              given_clauses.empty? ? [] : given_clauses.split('\n')
+              given_cell = @book.cell(row, COL[:given]).to_s
+              given_clauses = (given_cell.nil? || given_cell.empty?) ? [] : given_cell.split(/\n/)
               given_clauses.each do |clause|
                 scenario.add_given(clause)
               end
-              then_clauses = @book.cell(row, col[:then])
-              then_clauses.empty? ? [] : then_clauses.split('\n')
+              then_cell = @book.cell(row, COL[:then]).to_s
+              then_clauses = (then_cell.nil? || then_cell.empty?) ? [] : then_cell.split(/\n/)
               then_clauses.each do |clause|
                 scenario.add_then(clause)
               end
+              feature.add_scenario(scenario)
             end
           end # unless comment row
         end  # end each row
+        features << feature unless feature.nil? # add the last feature
         features
     
       end # method parse_excel
   
       def write(features)
+        if @feature_dir.nil? || @feature_dir.empty?
+          @feature_dir = 'features'
+        end
+        puts "Writing all feature files under #{@feature_dir}"
         features.each do |feature|
-          file = [@feature_dir, feature.filename].join('/')
-          File.open(file, 'w') {|f| f.write(feature.content) }
+          file = File.join(@feature_dir, feature.filename)
+          puts "Writing a feature file: #{feature.title}"
+          File.open(file, 'w') {|f| f.write(feature.write) }
         end
       end
       

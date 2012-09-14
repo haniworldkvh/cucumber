@@ -11,7 +11,7 @@ module Cucumber
       attr_accessor :preconditions  # given
       attr_accessor :expectations  # then
       
-      def initialize(feature, scenario, execution, prioirty=nil)
+      def initialize(feature, scenario, execution, priority=nil)
         unless feature.is_a?(Feature)
           raise ArgumentError.new("feature should be of type Feature.")
         end
@@ -32,11 +32,11 @@ module Cucumber
         return obj.is_a?(Scenario) && self.feature == obj.feature && self.description == obj.description 
       end
       
-      def add_prioirty(priority)
-        unless clause.is_a?(String) || clause.is_a?(Integer)
+      def add_priority(priority)
+        unless priority.is_a?(String) || priority.is_a?(Integer)
           raise ArgumentError.new("Priority should be string or integer.")
         end
-        priority = '@P' + priority
+        priority = '@P' + priority.to_i.to_s
         @tags << priority
       end
       
@@ -68,12 +68,19 @@ module Cucumber
         @expectations << clause
       end
       
-      def content
-        prefix_and = '\n' + TAB*2 + 'AND'
+      def prefix_and
+        "\n" + TAB*2 + 'AND '
+      end
+      
+      def write_tags
+        @tags.join(' ') unless tags.empty?
+      end
+      
+      def write
 <<-GHERKIN
 
-  #{@tags.join(' ')} unless tags.empty?}
-  Scenario: #{description}
+  #{write_tags}
+  Scenario: #{@description.to_s}
     Given #{@preconditions.first}#{ prefix_and + @preconditions[1..-1].join(prefix_and) if @preconditions.count > 1 }
     When #{@execution.to_s}
     Then #{@expectations.first}#{prefix_and + @expectations[1..-1].join(prefix_and) if @expectations.count > 1}

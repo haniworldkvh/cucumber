@@ -8,6 +8,7 @@ require 'cucumber/runtime/user_interface'
 require 'cucumber/runtime/features_loader'
 require 'cucumber/runtime/results'
 require 'cucumber/runtime/support_code'
+require 'cucumber/feature_factory'
 
 module Cucumber
   # This is the meaty part of Cucumber that ties everything together.
@@ -37,15 +38,17 @@ module Cucumber
     end
     
     def run!
-      load_step_definitions
-      fire_after_configuration_hook
-      
+      print '*****************' + @configuration.input.to_s     
       unless @configuration.input.nil?
         # generate feature files
-        gen = FeatureFileGenerator.new(@configuration.input, features_paths)
+        gen = ::Cucumber::FeatureFactory::FeatureFileGenerator.new(@configuration.input, features_paths, 5)
         gen.run!
       end
-      
+      raise RuntimeError.new("generation finished.")
+      exit
+      load_step_definitions
+      fire_after_configuration_hook
+
       tree_walker = @configuration.build_tree_walker(self)
       self.visitor = tree_walker # Ugly circular dependency, but needed to support World#puts
       

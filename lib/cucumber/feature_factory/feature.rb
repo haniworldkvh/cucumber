@@ -7,6 +7,8 @@ module Cucumber
       attr_accessor :scenarios
       
       def initialize(title, description)
+        puts "Purring title:  #{title}"
+        puts "putting description: #{description}"
         @title = title
         @description = description
         @scenarios = []
@@ -14,20 +16,35 @@ module Cucumber
       
       def create_scenario(scenario, execution, priority)
         if scenarios.include?(scenario)
-          raise ArgumentError("The scenario already exists.")
+          raise ArgumentError.new("The scenario already exists.")
         end
         Scenario.new(self, scenario, execution, priority)
       end 
       
-      def file_name
-        "#{title.downcase.gsub(' ', '_')}.feature"
+      def add_scenario(scenario)
+        unless scenario.is_a?(Scenario)
+          raise ArgumentError.new("scenario should be of type Scenario")
+        end
+        @scenarios << scenario
       end
       
-      def content
+      def filename
+        "#{@title.downcase.gsub(' ', '_')}.feature"
+      end
+      
+      def write
 <<-GHERKIN
-Feature: #{name}
-#{scenarios.each {|scenario| scenario.content}}
+Feature: #{title}
+#{self.write_scenarios}
     GHERKIN
+      end
+      
+      def write_scenarios
+        gherkin = ''
+        @scenarios.each do |scenario| 
+          gherkin << scenario.write
+        end 
+        gherkin
       end
     end
   end
